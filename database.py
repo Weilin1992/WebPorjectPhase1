@@ -89,7 +89,7 @@ while True:
 			stock = Share(name)
 			price = stock.get_price()
 			volume = stock.get_volume()
-			sql = "insert into oneDayStock(name,time,price,volume) values('%s','%s','%s''%s')" % (str(name),str(now),str(price),str(volume))
+			sql = "insert into oneDayStock(name,time,price,volume) values('%s','%s','%s','%s')" % (str(name),str(now),str(price),str(volume))
 			print sql
 			try:
 				cursor.execute(sql)
