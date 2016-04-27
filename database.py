@@ -12,24 +12,24 @@ cursor.execute(sql)
 
 cursor.execute("use Stock")
 
-sql = "create table if not exists Company(name varchar(10) not null, primary key(name))"
+sql = "create table if not exists stockPrediction_company(id MEDIUMINT NOT NULL AUTO_INCREMENT,name varchar(10) not null, primary key(id))"
 cursor.execute(sql)
 
-sql = "create table if not exists oneYearStock(name varchar(10) not null, time Date not null,open double not null,close double not null, high double not null,low double not null,volume double not null,primary key(name,time),foreign key(name) references Company(name))"
+sql = "create table if not exists stockPrediction_oneyearstock(id MEDIUMINT NOT NULL AUTO_INCREMENT, name varchar(10) not null, time Date not null,open double not null,close double not null, high double not null,low double not null,volume double not null,primary key(id))"
 cursor.execute(sql)
 
-sql = "create table if not exists oneDayStock(name varchar(10) not null, time DateTime not null,price double not null,volume double not null,primary key(name,time),foreign key(name) references Company(name))"
+sql = "create table if not exists stockPrediction_onedaystock(id MEDIUMINT NOT NULL AUTO_INCREMENT,name varchar(10) not null, time DateTime not null,price double not null,volume double not null,primary key(id))"
 cursor.execute(sql)
 
 company_name = ["YHOO","GOOG"]
 for name in company_name:
-	sql = "select * from Company\
+	sql = "select * from stockPrediction_company\
 		   where name = '%s'" % (name)
 	result = cursor.execute(sql)
 	#print result
 	if(result == 0):
 		try:
-			sql = "insert into Company(name) values('%s')" %(name)
+			sql = "insert into stockPrediction_company(name) values('%s')" %(name)
 			cursor.execute(sql)
 			db.commit()
 		except:
@@ -53,7 +53,8 @@ now  = now - timedelta(minutes = 1)
 # print ret
 while True:
 	print "thread executing"
-	if date.today() > today:
+	if True:
+		print "oneYearStock"
 		today = date.today()
 		interval = timedelta(days = 365)
 		oneYearBefore = today - interval
@@ -67,19 +68,21 @@ while True:
 			for ret in result:
 				name = ret['Symbol']
 				time = ret['Date']
-				sql = "select * from oneYearStock\
+				sql = "select * from stockPrediction_oneyearstock\
 						where name = '%s' and time = '%s'" %(name,time)
 				result = cursor.execute(sql)
+				
 				if result == 0:
 					Open = ret['Open']
 					Close = ret['Close']
 					Volume = ret["Volume"]
 					High = ret["High"]
 					Low = ret['Low']
-					sql = "insert into oneYearStock(name,time,open,close,high,low,volume) values('%s','%s','%s','%s','%s','%s','%s')" %(name,time,Open,Close,High,Low,Volume)
+					sql = "insert into stockPrediction_oneyearstock(name,time,open,close,high,low,volume) values('%s','%s','%s','%s','%s','%s','%s')" %(name,time,Open,Close,High,Low,Volume)
 					try:
 						cursor.execute(sql)
 						db.commit()
+						
 					except:
 						db.rollback()
 		# print ret
@@ -89,12 +92,13 @@ while True:
 			stock = Share(name)
 			price = stock.get_price()
 			volume = stock.get_volume()
-			sql = "insert into oneDayStock(name,time,price,volume) values('%s','%s','%s','%s')" % (str(name),str(now),str(price),str(volume))
-			print sql
+			cql = "insert into stockPrediction_onedaystock(name,time,price,volume) values('%s','%s','%s','%s')" % (str(name),str(now),str(price),str(volume))
+			print cql
 			try:
-				cursor.execute(sql)
+				cursor.execute(cql)
 				db.commit()
 			except:
+				print 'error'
 				db.rollback()
 	T.sleep(40)
 
